@@ -9,11 +9,13 @@ class App extends Component {
     super(props)
  
     this.state = {
-      wast: ''
+      wast: '',
+      placeholderText: "Enter transaction data"
     }
 
     //alert(binaryen)
     this.handleChange = this.handleChange.bind(this)
+    this.onSelectChange = this.onSelectChange.bind(this)
 
     //this.handleChange = this.handleChange.bind(this);
     //this.handleSubmit = this.handleSubmit.bind(this);
@@ -30,23 +32,9 @@ class App extends Component {
   }
 
   onSubmitTx(e) {
-    /*
-    const txParams = {
-      nonce: "0x"+web3.eth.getTransactionCount(web3.eth.accounts[0]),
-      gasPrice: "0x174876e8",
-      gasLimit: '0x700000',
-      to: "",//to,
-      value: '0x01',
-      data: data,
-      chainId: 66
-    }
 
-    web3.personal.sendTransaction({from: web3.eth.accounts[0]}).on('receipt', (val) => {
-      alert(val)  
-    })
-    */
     this.state.web3.eth.getAccounts((e, a) => {
-      if (e) alert(e)
+      if (e) throw(e)
 
       if (typeof(a) === 'array') {
         a = a[0]
@@ -56,27 +44,54 @@ class App extends Component {
         return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
       }
 
+      let wasm = ''
+      let wast = ""
+
       try {
         let module = window.Binaryen.parseText(this.state.wast)
-        let wasm = buf2hex(module.emitBinary())
-        console.log(wasm)
+        wasm = buf2hex(module.emitBinary())
       } catch (e) {
         alert(e)
+        //TODO do something here
       }
 
-      this.state.web3.eth.sendTransaction({'from': '', 'data': this.state.wast}, (e, tx) => {
-        //alert(tx)
+      if (this.state.placeholderText == 'enter contract code') {
+        //contract creation transaction
+
+        for (let i = 0; i < wasm.length; i += 2) {
+          wast += "\\" + wasm.slice(i, i + 2)
+        }
+
+        console.log(wast)
+        wast = `(module (import "ethereum" "return" (func $return (param i32 i32))) (memory 100) (data (i32.const 0)  "${wast}") (export "memory" (memory 0)) (export "main" (func $main)) (func $main (call $return (i32.const 0) (i32.const ${wasm.length / 2}))))`
+
+        try {
+          let module = window.Binaryen.parseText(wast)
+          wasm = buf2hex(module.emitBinary())
+        } catch (e) {
+          alert(e)
+          //TODO do something here
+        }
+      }
+
+      this.state.web3.eth.sendTransaction({'from': '', 'data': wasm}, (e, tx) => {
+        if (e) throw(e)
+        console.log("tx receiopt: "+tx)
       })
     })
   }
 
   componentWillMount() {
-    //var stagesData = this.props.allStagesData;
-
     window.addEventListener('load', () => {
       this.setState({
         web3: window.web3
       })
+    })
+  }
+
+  onSelectChange(e) {
+    this.setState({
+      placeholderText: e.target.selectedOptions[0].value
     })
   }
 
@@ -90,11 +105,15 @@ class App extends Component {
         <p className="App-intro">
           To get started, edit <code>src/App.js</code> and save to reload.
         </p>
+        <select name="Transaction Type" onChange={this.onSelectChange}>
+          <option value="enter transaction data">Transaction data</option>
+          <option value="enter contract code">Contract code</option>
+        </select>
         <div style={{width: "100%"}} >
-          <textarea onChange={this.handleChange} style={{display: "block"}} rows="20" cols="80" placeholder="write some code" id="editor"> </textarea>
+          <textarea onChange={this.handleChange} style={{display: "block"}} rows="20" cols="80" placeholder={this.state.placeholderText} id="editor"></textarea>
         </div>
         <button onClick={() => this.onSubmitTx()}>
-          click me
+          Submit Tx
         </button>
       </div>
     );
