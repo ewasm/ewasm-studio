@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^1.2.1",
     "binaryen": "^48.0.0",
+    "ethjs": "^0.4.0",
     "install": "^0.11.0",
     "npm": "^6.1.0",
     "react": "^16.4.0",
