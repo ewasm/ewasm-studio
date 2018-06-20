@@ -32,6 +32,8 @@ const styles = theme => ({
 class SimpleModal extends React.Component {
   state = {
     open: false,
+    txStatus: '',
+    createdAddress: ''
   };
 
   handleOpen = () => {
@@ -45,6 +47,14 @@ class SimpleModal extends React.Component {
   render() {
     const { classes } = this.props;
 
+    let createdAddress, txStatus = null
+    if (this.state.tx && this.state.tx.status) {
+      txStatus = "Status: " + this.state.tx.status == "1" ? "success" : "failure"
+    }
+    if (this.state.tx && this.state.tx.contractAddress) { 
+      createdAddress = "Contract Address: " + this.state.tx.contractAddresss
+    }
+
     return (
 			<Modal
 				aria-labelledby="simple-modal-title"
@@ -53,11 +63,10 @@ class SimpleModal extends React.Component {
 				onClose={this.props.onClose}
 			>
 				<div style={getModalStyle()} className={classes.paper}>
-					<Typography variant="title" id="modal-title">
-						Text in a modal
-					</Typography>
 					<Typography variant="subheading" id="simple-modal-description">
-						Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+            { this.props.tx && this.props.tx.status && this.props.tx.status == "1" ? "Status: Success" : "Status: Failure" }
+            <br/>
+            { this.props.tx && this.props.tx.contractAddress && "Contract Address: " + this.props.tx.contractAddress }
 					</Typography>
 					<SimpleModalWrapped />
 				</div>

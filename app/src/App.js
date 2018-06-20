@@ -109,6 +109,7 @@ class App extends Component {
         */
         let state = this.state
         let onTx = this.onTx.bind(this)
+        let onTxDone = false
         let blockCount = 0
 
 
@@ -118,18 +119,22 @@ class App extends Component {
         
         filter.watch(function(e, blockHash) {
           if (e) throw(e) //TODO make this not get swallowed 
+          if (onTxDone) return
 
           state.web3.eth.getBlock(blockHash, (e, block) => {
             if(e) throw(e)  //TODO make this not get swallowed
 
             for (let i = 0; i < block.transactions.length; i++) {
-              if (tx = block.transactions[i]) {
+              if (tx == block.transactions[i]) {
                 state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
                   if (e) throw(e) //TODO make this not get swallowed
 
                   if (txn) {
-                    filter.stopWatching()
-                    onTx(tx)
+                    // filter.stopWatching()
+                    // TODO add this ^ back in after figuring out why it doesn't work with cpp-ethereum
+
+                    onTxDone = true
+                    onTx(txn)
                   }
                 })
                 break
@@ -142,7 +147,6 @@ class App extends Component {
             }
           })
         })
-        filter.stopWatching()
       })
     })
   }
@@ -150,7 +154,6 @@ class App extends Component {
   onTx(tx) {
     //alert(tx.status === "1" ? "transaction succeeded" : "transaction failed")
     this.setState({txModalOpen: true, loading: false, txData: tx})
-    this.setState({loading: false})
   }
 
   componentWillMount() {
@@ -229,7 +232,7 @@ class App extends Component {
           Submit Tx
         </Button>
         <RingLoader color={'#123abc'} loading={this.state.loading} />
-        <TxModal open={this.state.txModalOpen} onClose={this.handleTxModalClose}></TxModal>
+        <TxModal open={this.state.txModalOpen} onClose={this.handleTxModalClose} tx={this.state.txData}></TxModal>
       </div>
     );
   }
