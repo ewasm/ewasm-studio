@@ -17,9 +17,10 @@ class App extends Component {
     this.state = {
       wast: '',
       anchorEl: null,
-      placeholderText: "Enter transaction data",
+      placeholderText: "Transaction Data (WAST)",
       TxType: 'Transaction',
       txModalOpen: false,
+      txStatusText: "Submit Transaction",
       loading: false
     }
 
@@ -31,6 +32,8 @@ class App extends Component {
     this.setTx = this.setTx.bind(this)
     this.onTx = this.onTx.bind(this)
     this.handleTxModalClose = this.handleTxModalClose.bind(this)
+    this.onAddressChange = this.onAddressChange.bind(this)
+    this.onValueUpdated = this.onValueUpdated.bind(this)
 
     //this.handleChange = this.handleChange.bind(this);
     //this.handleSubmit = this.handleSubmit.bind(this);
@@ -39,7 +42,12 @@ class App extends Component {
     //this.web3 = new Web3(this.web3Provider)
   }
   
-  
+  onAddressChange(e) {
+    this.setState({
+      to: e.target.value
+    })
+  }
+
   handleChange(e) {
     this.setState({
       wast: e.target.value
@@ -51,21 +59,18 @@ class App extends Component {
   }
 
   onSubmitTx(e) {
+    function buf2hex(buffer) { // buffer is an ArrayBuffer
+      return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+    }
 
-    this.state.web3.eth.getAccounts((e, a) => {
-      if (e) throw(e)
+    this.setState({
+      txStatusText: "Transaction Pending"
+    })
 
-      if (typeof(a) === 'array') {
-        a = a[0]
-      }
+    let wasm = ''
+    let wast = ""
 
-      function buf2hex(buffer) { // buffer is an ArrayBuffer
-        return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
-      }
-
-      let wasm = ''
-      let wast = ""
-
+    if (this.state.wast.length > 0) {
       try {
         let module = window.Binaryen.parseText(this.state.wast)
         wasm = buf2hex(module.emitBinary())
@@ -92,76 +97,98 @@ class App extends Component {
           //TODO do something here
         }
       }
+    }
 
-      this.setState({loading: true})
+    this.setState({loading: true})
 
-      this.state.web3.eth.sendTransaction({'from': '', 'data': wasm}, (e, tx) => {
+    let txn = {}
+
+    if (wasm.length > 0)
+      txn.data = wasm
+
+    if (this.state.to)
+      txn.to = this.state.to
+
+    if (this.state.value) {
+      let value = parseInt(this.state.value)
+      if (!value) {
+        alert("must input number as value")
+        throw("foobar")
+      }
+    }
+
+    this.state.web3.eth.sendTransaction(txn, (e, tx) => {
+      if (e) throw(e)
+      /*
+      this.state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
         if (e) throw(e)
-        /*
-        this.state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
-          if (e) throw(e)
-          if (txn) {
-            cb(txn)
+        if (txn) {
+          cb(txn)
 
+        }
+        }
+      })
+      */
+      let state = this.state
+      let onTx = this.onTx.bind(this)
+      let onTxDone = false
+      let blockCount = 0
+
+
+      //let filter = this.state.web3.eth.filter("latest")
+      
+      // bind the filter to the watch function's `this` so that I can call `filter.stopWatching` within
+      
+      let latestBlockNum = null
+
+      let interval = window.setInterval(() => {
+        state.web3.eth.getBlock("latest", (e, block) => {
+          if(e) throw(e)  //TODO make this not get swallowed
+
+          if (latestBlockNum) {
+            if (block.number <= latestBlockNum) {
+              return
+            }
           }
+          latestBlockNum = block.number
+
+          for (let i = 0; i < block.transactions.length; i++) {
+            if (tx == block.transactions[i]) {
+              state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
+                if (e) throw(e) //TODO make this not get swallowed
+
+                if (txn) {
+                  // filter.stopWatching()
+                  // TODO add this ^ back in after figuring out why it doesn't work with cpp-ethereum
+
+                  clearInterval(interval)
+                  this.setState({txStatusText: "Submit Transaction"})
+                  onTx(txn)
+                }
+              })
+              break
+            }
+          }
+
+          blockCount++
+          if (blockCount > 10) {
+            alert("transaction was not included in the last 10 blocks... assuming dropped")
+            clearInterval(interval)
           }
         })
-        */
-        let state = this.state
-        let onTx = this.onTx.bind(this)
-        let onTxDone = false
-        let blockCount = 0
-
-
-        //let filter = this.state.web3.eth.filter("latest")
-        
-        // bind the filter to the watch function's `this` so that I can call `filter.stopWatching` within
-        
-        let latestBlockNum = null
-
-        let interval = window.setInterval(() => {
-          state.web3.eth.getBlock("latest", (e, block) => {
-            if(e) throw(e)  //TODO make this not get swallowed
-
-            if (latestBlockNum) {
-              if (block.number <= latestBlockNum) {
-                return
-              }
-            }
-            latestBlockNum = block.number
-
-            for (let i = 0; i < block.transactions.length; i++) {
-              if (tx == block.transactions[i]) {
-                state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
-                  if (e) throw(e) //TODO make this not get swallowed
-
-                  if (txn) {
-                    // filter.stopWatching()
-                    // TODO add this ^ back in after figuring out why it doesn't work with cpp-ethereum
-
-                    clearInterval(interval)
-                    onTxDone = true
-                    onTx(txn)
-                  }
-                })
-                break
-              }
-            }
-
-            blockCount++
-            if (blockCount > 10) {
-              alert("transaction was not included in the last 10 blocks... assuming dropped")
-              clearInterval(interval)
-            }
-          })
-        }, 100)
-      })
+      }, 100)
     })
   }
 
   onTx(tx) {
     //alert(tx.status === "1" ? "transaction succeeded" : "transaction failed")
     this.setState({txModalOpen: true, loading: false, txData: tx})
+  }
+
+  onValueUpdated(e) {
+    this.setState({
+      value: e.target.value
+    })
   }
 
   componentWillMount() {
@@ -185,7 +212,7 @@ class App extends Component {
 
   setContract = event => {
     this.setState({
-      placeholderText: "Enter contract code",
+      placeholderText: "Contract Code (WAST)",
       TxType: 'Contract'
     })
     this.setState({ anchorEl: null });
@@ -193,7 +220,7 @@ class App extends Component {
 
   setTx = event => {
     this.setState({
-      placeholderText: "Enter transaction data",
+      placeholderText: "Transaction Data",
       TxType: 'Transaction'
     })
     this.setState({ anchorEl: null });
@@ -209,18 +236,16 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to eWASM</h1>
+          <h1 className="App-title">Welcome to the EWASM testnet</h1>
         </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
         <div style={{display: "flex", "flex-direction": "column", margin: "auto", width: "600px"}} >
+          <h2 style={{"text-align": "left"}}> Transaction Type </h2>
           <div>
             <Button
               aria-owns={anchorEl ? 'simple-menu' : null}
               aria-haspopup="true"
               onClick={this.handleClick}
-              style={{float: "left"}}
+              style={{"float": "left"}}
             >
               {this.state.TxType}
               <Icon right>expand_more</Icon>
@@ -235,12 +260,19 @@ class App extends Component {
               <MenuItem onClick={this.setContract}>Contract Creation</MenuItem>
             </Menu>
           </div>
-          <textarea onChange={this.handleChange} style={{display: "block", "margin-top": "3em", float: "left"}} rows="20" cols="80" placeholder={this.state.placeholderText} id="editor"></textarea>
-          <div style={{display: "flex", "flex-direction": "row"}}>
+          <h2 style={{"text-align": "left"}}> Destination Address </h2>
+          <textarea onChange={this.onAddressChange} rows="1" cols="80"></textarea>
+          <h2 style={{"text-align": "left"}}> Value (Wei) </h2>
+          <textarea onChange={this.onValueUpdated} rows="1" cols="80" ></textarea>
+          <h2 style={{"text-align": "left"}}> {this.state.placeholderText} </h2>
+          <textarea onChange={this.handleChange} style={{display: "block", "float": "left"}} rows="20" cols="80" id="editor"></textarea>
+          <div style={{display: "flex", "flex-direction": "row", "margin-top": "1em"}}>
             <Button disabled={this.state.loading} variant="contained" color="primary" onClick={() => this.onSubmitTx()}>
-              Submit Tx
+              {this.state.txStatusText}
             </Button>
-            <PulseLoader color={'#123abc'} loading={this.state.loading} />
+            <div style={{"padding-top": "5px", "padding-left": "20px"}}>
+              <PulseLoader color={'#123abc'} loading={this.state.loading} />
+            </div>
           </div>
         </div>
 
