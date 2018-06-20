@@ -5,7 +5,7 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Icon from '@material-ui/core/Icon'
-import {RingLoader} from 'react-spinners';
+import {PulseLoader} from 'react-spinners';
 import TxModal from './components/TxModal';
 
 import './App.css';
@@ -113,16 +113,22 @@ class App extends Component {
         let blockCount = 0
 
 
-        let filter = this.state.web3.eth.filter("latest")
+        //let filter = this.state.web3.eth.filter("latest")
         
         // bind the filter to the watch function's `this` so that I can call `filter.stopWatching` within
         
-        filter.watch(function(e, blockHash) {
-          if (e) throw(e) //TODO make this not get swallowed 
-          if (onTxDone) return
+        let latestBlockNum = null
 
-          state.web3.eth.getBlock(blockHash, (e, block) => {
+        let interval = window.setInterval(() => {
+          state.web3.eth.getBlock("latest", (e, block) => {
             if(e) throw(e)  //TODO make this not get swallowed
+
+            if (latestBlockNum) {
+              if (block.number <= latestBlockNum) {
+                return
+              }
+            }
+            latestBlockNum = block.number
 
             for (let i = 0; i < block.transactions.length; i++) {
               if (tx == block.transactions[i]) {
@@ -133,6 +139,7 @@ class App extends Component {
                     // filter.stopWatching()
                     // TODO add this ^ back in after figuring out why it doesn't work with cpp-ethereum
 
+                    clearInterval(interval)
                     onTxDone = true
                     onTx(txn)
                   }
@@ -144,9 +151,10 @@ class App extends Component {
             blockCount++
             if (blockCount > 10) {
               alert("transaction was not included in the last 10 blocks... assuming dropped")
+              clearInterval(interval)
             }
           })
-        })
+        }, 100)
       })
     })
   }
@@ -206,32 +214,37 @@ class App extends Component {
         <p className="App-intro">
           To get started, edit <code>src/App.js</code> and save to reload.
         </p>
-				<div>
-					<Button
-						aria-owns={anchorEl ? 'simple-menu' : null}
-						aria-haspopup="true"
-						onClick={this.handleClick}
-					>
-						{this.state.TxType}
-						<Icon right>expand_more</Icon>
-					</Button>
-					<Menu
-						id="simple-menu"
-						anchorEl={anchorEl}
-						open={Boolean(anchorEl)}
-						onClose={this.handleClose}
-					>
-						<MenuItem onClick={this.setTx}>Normal Transaction</MenuItem>
-						<MenuItem onClick={this.setContract}>Contract Creation</MenuItem>
-					</Menu>
-				</div>
-        <div style={{width: "100%"}} >
-          <textarea onChange={this.handleChange} style={{display: "block"}} rows="20" cols="80" placeholder={this.state.placeholderText} id="editor"></textarea>
+        <div style={{display: "flex", "flex-direction": "column", margin: "auto", width: "600px"}} >
+          <div>
+            <Button
+              aria-owns={anchorEl ? 'simple-menu' : null}
+              aria-haspopup="true"
+              onClick={this.handleClick}
+              style={{float: "left"}}
+            >
+              {this.state.TxType}
+              <Icon right>expand_more</Icon>
+            </Button>
+            <Menu
+              id="simple-menu"
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={this.handleClose}
+            >
+              <MenuItem onClick={this.setTx}>Normal Transaction</MenuItem>
+              <MenuItem onClick={this.setContract}>Contract Creation</MenuItem>
+            </Menu>
+          </div>
+          <textarea onChange={this.handleChange} style={{display: "block", "margin-top": "3em", float: "left"}} rows="20" cols="80" placeholder={this.state.placeholderText} id="editor"></textarea>
+          <div style={{display: "flex", "flex-direction": "row"}}>
+            <Button disabled={this.state.loading} variant="contained" color="primary" onClick={() => this.onSubmitTx()}>
+              Submit Tx
+            </Button>
+            <PulseLoader color={'#123abc'} loading={this.state.loading} />
+          </div>
         </div>
-        <Button variant="contained" color="primary" onClick={() => this.onSubmitTx()}>
-          Submit Tx
-        </Button>
-        <RingLoader color={'#123abc'} loading={this.state.loading} />
+
+
         <TxModal open={this.state.txModalOpen} onClose={this.handleTxModalClose} tx={this.state.txData}></TxModal>
       </div>
     );
