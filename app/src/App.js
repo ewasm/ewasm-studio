@@ -5,6 +5,8 @@ import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Icon from '@material-ui/core/Icon'
+import {RingLoader} from 'react-spinners';
+import TxModal from './components/TxModal';
 
 import './App.css';
 
@@ -16,7 +18,9 @@ class App extends Component {
       wast: '',
       anchorEl: null,
       placeholderText: "Enter transaction data",
-      TxType: 'Transaction'
+      TxType: 'Transaction',
+      txModalOpen: false,
+      loading: false
     }
 
     //alert(binaryen)
@@ -26,6 +30,7 @@ class App extends Component {
     this.setContract = this.setContract.bind(this)
     this.setTx = this.setTx.bind(this)
     this.onTx = this.onTx.bind(this)
+    this.handleTxModalClose = this.handleTxModalClose.bind(this)
 
     //this.handleChange = this.handleChange.bind(this);
     //this.handleSubmit = this.handleSubmit.bind(this);
@@ -39,6 +44,10 @@ class App extends Component {
     this.setState({
       wast: e.target.value
     })
+  }
+
+  handleTxModalClose() {
+    this.setState({txModalOpen: false})
   }
 
   onSubmitTx(e) {
@@ -84,6 +93,8 @@ class App extends Component {
         }
       }
 
+      this.setState({loading: true})
+
       this.state.web3.eth.sendTransaction({'from': '', 'data': wasm}, (e, tx) => {
         if (e) throw(e)
         /*
@@ -97,23 +108,49 @@ class App extends Component {
         })
         */
         let state = this.state
-        let onTx = this.onTx
+        let onTx = this.onTx.bind(this)
+        let blockCount = 0
 
-        this.state.web3.eth.filter("latest", function(e, result) {
-          state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
-            if (e) throw(e)
-            if (txn) {
-              onTx(tx)
+
+        let filter = this.state.web3.eth.filter("latest")
+        
+        // bind the filter to the watch function's `this` so that I can call `filter.stopWatching` within
+        
+        filter.watch(function(e, blockHash) {
+          if (e) throw(e) //TODO make this not get swallowed 
+
+          state.web3.eth.getBlock(blockHash, (e, block) => {
+            if(e) throw(e)  //TODO make this not get swallowed
+
+            for (let i = 0; i < block.transactions.length; i++) {
+              if (tx = block.transactions[i]) {
+                state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
+                  if (e) throw(e) //TODO make this not get swallowed
+
+                  if (txn) {
+                    filter.stopWatching()
+                    onTx(tx)
+                  }
+                })
+                break
+              }
+            }
+
+            blockCount++
+            if (blockCount > 10) {
+              alert("transaction was not included in the last 10 blocks... assuming dropped")
             }
           })
         })
-        //console.log("tx receiopt: "+tx)
+        filter.stopWatching()
       })
     })
   }
 
   onTx(tx) {
-    alert(tx.status === "1" ? "transaction succeeded" : "transaction failed")
+    //alert(tx.status === "1" ? "transaction succeeded" : "transaction failed")
+    this.setState({txModalOpen: true, loading: false, txData: tx})
+    this.setState({loading: false})
   }
 
   componentWillMount() {
@@ -191,6 +228,8 @@ class App extends Component {
         <Button variant="contained" color="primary" onClick={() => this.onSubmitTx()}>
           Submit Tx
         </Button>
+        <RingLoader color={'#123abc'} loading={this.state.loading} />
+        <TxModal open={this.state.txModalOpen} onClose={this.handleTxModalClose}></TxModal>
       </div>
     );
   }
