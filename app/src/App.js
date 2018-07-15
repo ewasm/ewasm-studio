@@ -70,7 +70,7 @@ class App extends Component {
     let wasm = ''
     let wast = ""
 
-    if (this.state.wast.length > 0) {
+    if (this.state.wast.length > 0 && !this.state.to) {
       try {
         let module = window.Binaryen.parseText(this.state.wast)
         wasm = buf2hex(module.emitBinary())
@@ -97,6 +97,8 @@ class App extends Component {
           //TODO do something here
         }
       }
+    } else {
+      wasm = this.state.wast
     }
 
     this.setState({loading: true})
