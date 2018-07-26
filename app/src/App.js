@@ -21,7 +21,8 @@ class App extends Component {
       TxType: 'Transaction',
       txModalOpen: false,
       txStatusText: "Submit Transaction",
-      loading: false
+      loading: false,
+      warningText: ''
     }
 
     //alert(binaryen)
@@ -200,6 +201,7 @@ class App extends Component {
       })
     })
     this.setState({ anchorEl: null });
+
   }
 
   onSelectChange(e) {
@@ -234,6 +236,11 @@ class App extends Component {
 
   render() {
     const {anchorEl} = this.state;
+    if ((typeof this.state.web3) === 'undefined') {
+      this.state.warningText = 'WARNING: Metamask (Web3) not detected!';
+    } else {
+      this.state.warningText = '';
+    }
     return (
       <div className="App">
         <header className="App-header">
@@ -241,6 +248,7 @@ class App extends Component {
           <h1 className="App-title">Welcome to the EWASM testnet</h1>
         </header>
         <div style={{display: "flex", "flex-direction": "column", margin: "auto", width: "600px"}} >
+          <h3 style={{"text-align": "left", "color": "red"}}>{this.state.warningText}</h3>
           <h2 style={{"text-align": "left"}}> Transaction Type </h2>
           <div>
             <Button
@@ -269,7 +277,7 @@ class App extends Component {
           <h2 style={{"text-align": "left"}}> {this.state.placeholderText} </h2>
           <textarea onChange={this.handleChange} style={{display: "block", "float": "left"}} rows="20" cols="80" id="editor"></textarea>
           <div style={{display: "flex", "flex-direction": "row", "margin-top": "1em"}}>
-            <Button disabled={this.state.loading} variant="contained" color="primary" onClick={() => this.onSubmitTx()}>
+            <Button disabled={this.state.loading || (typeof this.state.web3 === 'undefined')} variant="contained" color="primary" onClick={() => this.onSubmitTx()}>
               {this.state.txStatusText}
             </Button>
             <div style={{"padding-top": "5px", "padding-left": "20px"}}>
