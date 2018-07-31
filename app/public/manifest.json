@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "ewasm studio",
+  "name": "Simple web application to submit transactions and deploy ewasm contracts",
   "icons": [
     {
       "src": "favicon.ico",

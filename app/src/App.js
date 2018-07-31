@@ -262,8 +262,8 @@ class App extends Component {
               <MenuItem onClick={this.setContract}>Contract Creation</MenuItem>
             </Menu>
           </div>
-          <h2 style={{"text-align": "left"}}> Destination Address </h2>
-          <textarea onChange={this.onAddressChange} rows="1" cols="80"></textarea>
+          <h2 style={{"text-align": "left"}}> Destination Address</h2>
+          <textarea onChange={this.onAddressChange} style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "default"}} disabled={this.state.TxType === "Contract"} rows="1" cols="80"></textarea>
           <h2 style={{"text-align": "left"}}> Value (Wei) </h2>
           <textarea onChange={this.onValueUpdated} rows="1" cols="80" ></textarea>
           <h2 style={{"text-align": "left"}}> {this.state.placeholderText} </h2>
