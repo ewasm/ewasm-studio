@@ -255,7 +255,7 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to the EWASM testnet</h1>
+          <h1 className="App-title">Welcome to the Ewasm testnet!</h1>
         </header>
         <div style={{display: "flex", "flex-direction": "column", margin: "auto", width: "600px"}} >
           <h3 style={{"text-align": "left", "color": "red"}}>{this.state.warningText}</h3>
