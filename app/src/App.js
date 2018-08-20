@@ -98,7 +98,7 @@ class App extends Component {
         }
 
         console.log(wast)
-        wast = `(module (import "ethereum" "return" (func $return (param i32 i32))) (memory 100) (data (i32.const 0)  "${wast}") (export "memory" (memory 0)) (export "main" (func $main)) (func $main (call $return (i32.const 0) (i32.const ${wasm.length / 2}))))`
+        wast = `(module (import "ethereum" "finish" (func $finish (param i32 i32))) (memory 100) (data (i32.const 0)  "${wast}") (export "memory" (memory 0)) (export "main" (func $main)) (func $main (call $finish (i32.const 0) (i32.const ${wasm.length / 2}))))`
 
         try {
           let module = window.Binaryen.parseText(wast)
