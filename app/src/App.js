@@ -259,7 +259,7 @@ class App extends Component {
         </header>
         <div style={{display: "flex", "flex-direction": "column", margin: "auto", width: "600px"}} >
           <h3 style={{"text-align": "left", "color": "red"}}>{this.state.warningText}</h3>
-          /*
+          {/*
           <h2 style={{"text-align": "left"}}> Transaction Type </h2>
           <div>
             <Button
@@ -281,13 +281,13 @@ class App extends Component {
               <MenuItem onClick={this.setContract}>Contract Creation</MenuItem>
             </Menu>
           </div>
-          */
+          */}
           <h2 style={{"text-align": "left"}}> Destination Address</h2>
           <textarea
             placeholder="Enter an address to send normal transaction. Leave blank to send contract creation tx."
             onChange={this.onAddressChange}
             style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "default"}}
-            /* disabled={this.state.TxType === "Contract"} */
+            // disabled={this.state.TxType === "Contract"}
             rows="1"
             cols="80">
           </textarea>
