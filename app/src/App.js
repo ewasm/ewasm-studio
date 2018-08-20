@@ -13,12 +13,13 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props)
- 
+
     this.state = {
       wast: '',
       anchorEl: null,
       placeholderText: "Transaction Data (WAST)",
-      TxType: 'Transaction',
+      //TxType: 'Transaction',
+      TxType: 'Contract',
       txModalOpen: false,
       txStatusText: "Submit Transaction",
       loading: false,
@@ -42,8 +43,17 @@ class App extends Component {
     //this.web3Provider = new Web3.providers.HttpProvider('http://localhost:8545')
     //this.web3 = new Web3(this.web3Provider)
   }
-  
+
   onAddressChange(e) {
+    if (e.target.value !== "") {
+      console.log('calling setTx...')
+      this.setTx()
+    }
+    if (e.target.value === "") {
+      console.log('calling setContract...')
+      this.setContract()
+    }
+
     this.setState({
       to: e.target.value
     })
@@ -139,9 +149,9 @@ class App extends Component {
 
 
       //let filter = this.state.web3.eth.filter("latest")
-      
+
       // bind the filter to the watch function's `this` so that I can call `filter.stopWatching` within
-      
+
       let latestBlockNum = null
 
       let interval = window.setInterval(() => {
@@ -249,6 +259,7 @@ class App extends Component {
         </header>
         <div style={{display: "flex", "flex-direction": "column", margin: "auto", width: "600px"}} >
           <h3 style={{"text-align": "left", "color": "red"}}>{this.state.warningText}</h3>
+          /*
           <h2 style={{"text-align": "left"}}> Transaction Type </h2>
           <div>
             <Button
@@ -270,8 +281,16 @@ class App extends Component {
               <MenuItem onClick={this.setContract}>Contract Creation</MenuItem>
             </Menu>
           </div>
+          */
           <h2 style={{"text-align": "left"}}> Destination Address</h2>
-          <textarea onChange={this.onAddressChange} style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "default"}} disabled={this.state.TxType === "Contract"} rows="1" cols="80"></textarea>
+          <textarea
+            placeholder="Enter an address to send normal transaction. Leave blank to send contract creation tx."
+            onChange={this.onAddressChange}
+            style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "default"}}
+            /* disabled={this.state.TxType === "Contract"} */
+            rows="1"
+            cols="80">
+          </textarea>
           <h2 style={{"text-align": "left"}}> Value (Wei) </h2>
           <textarea onChange={this.onValueUpdated} rows="1" cols="80" ></textarea>
           <h2 style={{"text-align": "left"}}> {this.state.placeholderText} </h2>
