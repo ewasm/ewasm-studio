@@ -293,7 +293,7 @@ class App extends Component {
           <textarea
             placeholder="Enter an address to send normal transaction. Leave blank to send contract creation tx."
             onChange={this.onAddressChange}
-            style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "default"}}
+            style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "rgb(256, 256, 256)"}}
             // disabled={this.state.TxType === "Contract"}
             rows="1"
             cols="80">
