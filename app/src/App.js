@@ -70,6 +70,7 @@ class App extends Component {
   }
 
   onSubmitTx(e) {
+    console.log('onSubmitTx clicked.')
     function buf2hex(buffer) { // buffer is an ArrayBuffer
       return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
     }
@@ -112,6 +113,7 @@ class App extends Component {
       wasm = this.state.wast
     }
 
+    // this might be a problem, because it triggers a re-render..
     this.setState({loading: true})
 
     let txn = {}
@@ -122,11 +124,15 @@ class App extends Component {
     if (this.state.to)
       txn.to = this.state.to
 
+    console.log('this.state.value:', this.state.value)
     if (this.state.value) {
       let value = parseInt(this.state.value)
       if (!value) {
         alert("must input number as value")
         throw("foobar")
+      } else {
+        console.log('got tx value:', value)
+        txn.value = value
       }
     }
 
@@ -199,6 +205,7 @@ class App extends Component {
   }
 
   onValueUpdated(e) {
+    console.log('onValueUpdated:', e.target.value)
     this.setState({
       value: e.target.value
     })
