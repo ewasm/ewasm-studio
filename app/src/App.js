@@ -13,12 +13,13 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props)
- 
+
     this.state = {
       wast: '',
       anchorEl: null,
-      placeholderText: "Transaction Data (WAST)",
-      TxType: 'Transaction',
+      placeholderText: "Contract Code (WAST)",
+      //TxType: 'Transaction',
+      TxType: 'Contract',
       txModalOpen: false,
       txStatusText: "Submit Transaction",
       loading: false,
@@ -42,8 +43,17 @@ class App extends Component {
     //this.web3Provider = new Web3.providers.HttpProvider('http://localhost:8545')
     //this.web3 = new Web3(this.web3Provider)
   }
-  
+
   onAddressChange(e) {
+    if (e.target.value !== "") {
+      console.log('calling setTx...')
+      this.setTx()
+    }
+    if (e.target.value === "") {
+      console.log('calling setContract...')
+      this.setContract()
+    }
+
     this.setState({
       to: e.target.value
     })
@@ -60,6 +70,7 @@ class App extends Component {
   }
 
   onSubmitTx(e) {
+    console.log('onSubmitTx clicked.')
     function buf2hex(buffer) { // buffer is an ArrayBuffer
       return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
     }
@@ -102,6 +113,7 @@ class App extends Component {
       wasm = this.state.wast
     }
 
+    // this might be a problem, because it triggers a re-render..
     this.setState({loading: true})
 
     let txn = {}
@@ -112,11 +124,15 @@ class App extends Component {
     if (this.state.to)
       txn.to = this.state.to
 
+    console.log('this.state.value:', this.state.value)
     if (this.state.value) {
       let value = parseInt(this.state.value)
       if (!value) {
         alert("must input number as value")
         throw("foobar")
+      } else {
+        console.log('got tx value:', value)
+        txn.value = value
       }
     }
 
@@ -139,9 +155,9 @@ class App extends Component {
 
 
       //let filter = this.state.web3.eth.filter("latest")
-      
+
       // bind the filter to the watch function's `this` so that I can call `filter.stopWatching` within
-      
+
       let latestBlockNum = null
 
       let interval = window.setInterval(() => {
@@ -189,6 +205,7 @@ class App extends Component {
   }
 
   onValueUpdated(e) {
+    console.log('onValueUpdated:', e.target.value)
     this.setState({
       value: e.target.value
     })
@@ -245,10 +262,11 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to the EWASM testnet</h1>
+          <h1 className="App-title">Welcome to the Ewasm testnet!</h1>
         </header>
         <div style={{display: "flex", "flex-direction": "column", margin: "auto", width: "600px"}} >
           <h3 style={{"text-align": "left", "color": "red"}}>{this.state.warningText}</h3>
+          {/*
           <h2 style={{"text-align": "left"}}> Transaction Type </h2>
           <div>
             <Button
@@ -270,8 +288,16 @@ class App extends Component {
               <MenuItem onClick={this.setContract}>Contract Creation</MenuItem>
             </Menu>
           </div>
+          */}
           <h2 style={{"text-align": "left"}}> Destination Address</h2>
-          <textarea onChange={this.onAddressChange} style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "default"}} disabled={this.state.TxType === "Contract"} rows="1" cols="80"></textarea>
+          <textarea
+            placeholder="Enter an address to send normal transaction. Leave blank to send contract creation tx."
+            onChange={this.onAddressChange}
+            style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "default"}}
+            // disabled={this.state.TxType === "Contract"}
+            rows="1"
+            cols="80">
+          </textarea>
           <h2 style={{"text-align": "left"}}> Value (Wei) </h2>
           <textarea onChange={this.onValueUpdated} rows="1" cols="80" ></textarea>
           <h2 style={{"text-align": "left"}}> {this.state.placeholderText} </h2>
