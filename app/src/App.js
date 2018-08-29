@@ -17,7 +17,7 @@ class App extends Component {
     this.state = {
       wast: '',
       anchorEl: null,
-      placeholderText: "Transaction Data (WAST)",
+      placeholderText: "Contract Code (WAST)",
       //TxType: 'Transaction',
       TxType: 'Contract',
       txModalOpen: false,
