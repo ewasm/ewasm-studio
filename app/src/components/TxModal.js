@@ -51,7 +51,7 @@ class SimpleModal extends React.Component {
     if (this.state.tx && this.state.tx.status) {
       txStatus = "Status: " + this.state.tx.status == "1" ? "success" : "failure"
     }
-    if (this.state.tx && this.state.tx.contractAddress) { 
+    if (this.state.tx && this.state.tx.contractAddress) {
       createdAddress = "Contract Address: " + this.state.tx.contractAddresss
     }
 
@@ -64,7 +64,8 @@ class SimpleModal extends React.Component {
 			>
 				<div style={getModalStyle()} className={classes.paper}>
 					<Typography variant="subheading" id="simple-modal-description">
-            { this.props.tx && this.props.tx.status && this.props.tx.status == "1" ? "Status: Success" : "Status: Failure" }
+            {/* geth uses tx.status ="0x1" for success.  cpp uses tx.status="1" */}
+            { this.props.tx && this.props.tx.status && this.props.tx.status == "0x1" ? "Status: Success" : "Status: Failure" }
             <br/>
             { this.props.tx && this.props.tx.contractAddress && "Contract Address: " + this.props.tx.contractAddress }
 					</Typography>
