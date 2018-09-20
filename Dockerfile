@@ -1,10 +1,10 @@
 FROM node:8 AS nodebuild
 
-RUN git clone https://github.com/ewasm/ewasm-studio
+ADD ./app /app
 
-RUN cd ewasm-studio/app && npm install
+RUN cd /app && npm install
 
-RUN cd ewasm-studio/app && npm run build
+RUN cd /app && npm run build
 
-WORKDIR "ewasm-studio/app"
+WORKDIR /app
 ENTRYPOINT ["npm", "run", "start"]
