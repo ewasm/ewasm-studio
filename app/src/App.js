@@ -18,12 +18,11 @@ class App extends Component {
       wast: '',
       anchorEl: null,
       placeholderText: "Contract Code (WAST)",
-      //TxType: 'Transaction',
-      TxType: 'Contract',
       txModalOpen: false,
       txStatusText: "Submit Transaction",
       loading: false,
-      warningText: ''
+      warningText: '',
+      txReceipt: null
     }
 
     //alert(binaryen)
@@ -75,9 +74,11 @@ class App extends Component {
       return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
     }
 
+/*
     this.setState({
       txStatusText: "Transaction Pending"
     })
+*/
 
     let wasm = ''
     let wast = ""
@@ -138,69 +139,24 @@ class App extends Component {
 
     this.state.web3.eth.sendTransaction(txn, (e, tx) => {
       if (e) throw(e)
-      /*
-      this.state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
-        if (e) throw(e)
-        if (txn) {
-          cb(txn)
+      this.setState({loading: false})
 
-        }
-        }
-      })
-      */
       let state = this.state
       let onTx = this.onTx.bind(this)
       let onTxDone = false
       let blockCount = 0
 
+      this.setState({
+        txModalOpen: true,
+        txReceipt: tx,
+        TxStatusText: "Submit Transaction",
+        loading: false
+      })
 
-      //let filter = this.state.web3.eth.filter("latest")
-
-      // bind the filter to the watch function's `this` so that I can call `filter.stopWatching` within
-
-      let latestBlockNum = null
-
-      let interval = window.setInterval(() => {
-        state.web3.eth.getBlock("latest", (e, block) => {
-          if(e) throw(e)  //TODO make this not get swallowed
-
-          if (latestBlockNum) {
-            if (block.number <= latestBlockNum) {
-              return
-            }
-          }
-          latestBlockNum = block.number
-
-          for (let i = 0; i < block.transactions.length; i++) {
-            if (tx == block.transactions[i]) {
-              state.web3.eth.getTransactionReceipt(tx, (e, txn) => {
-                if (e) throw(e) //TODO make this not get swallowed
-
-                if (txn) {
-                  // filter.stopWatching()
-                  // TODO add this ^ back in after figuring out why it doesn't work with cpp-ethereum
-
-                  clearInterval(interval)
-                  this.setState({txStatusText: "Submit Transaction"})
-                  onTx(txn)
-                }
-              })
-              break
-            }
-          }
-
-          blockCount++
-          if (blockCount > 10) {
-            alert("transaction was not included in the last 10 blocks... assuming dropped")
-            clearInterval(interval)
-          }
-        })
-      }, 100)
     })
   }
 
   onTx(tx) {
-    //alert(tx.status === "1" ? "transaction succeeded" : "transaction failed")
     this.setState({txModalOpen: true, loading: false, txData: tx})
   }
 
@@ -313,7 +269,7 @@ class App extends Component {
         </div>
 
 
-        <TxModal open={this.state.txModalOpen} onClose={this.handleTxModalClose} tx={this.state.txData}></TxModal>
+        <TxModal open={this.state.txModalOpen} onClose={this.handleTxModalClose} txReceipt={this.state.txReceipt}></TxModal>
       </div>
     );
   }
