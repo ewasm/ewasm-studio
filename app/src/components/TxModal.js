@@ -32,8 +32,7 @@ const styles = theme => ({
 class SimpleModal extends React.Component {
   state = {
     open: false,
-    txStatus: '',
-    createdAddress: ''
+    txReceipt: null
   };
 
   handleOpen = () => {
@@ -64,10 +63,7 @@ class SimpleModal extends React.Component {
 			>
 				<div style={getModalStyle()} className={classes.paper}>
 					<Typography variant="subheading" id="simple-modal-description">
-            {/* geth uses tx.status ="0x1" for success.  cpp uses tx.status="1" */}
-            { this.props.tx && this.props.tx.status && this.props.tx.status == "0x1" ? "Status: Success" : "Status: Failure" }
-            <br/>
-            { this.props.tx && this.props.tx.contractAddress && "Contract Address: " + this.props.tx.contractAddress }
+            <p> Tx Receipt: { this.props.txReceipt } </p>
 					</Typography>
 					<SimpleModalWrapped />
 				</div>
