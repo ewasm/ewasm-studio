@@ -18,6 +18,8 @@ class App extends Component {
       wast: '',
       anchorEl: null,
       placeholderText: "Contract Code (WAST)",
+      //TxType: 'Transaction', // switches to Transaction when user enters a destination address
+      TxType: 'Contract', // default to Contract type
       txModalOpen: false,
       txStatusText: "Submit Transaction",
       loading: false,
