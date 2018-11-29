@@ -76,6 +76,22 @@ class App extends Component {
       return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
     }
 
+    function getReceipt(thisObj, tx) {
+      thisObj.state.web3.eth.getTransactionReceipt(tx, (e, receipt) => {
+        if (e) throw(e)
+        if (receipt) {
+          thisObj.setState({
+            txModalOpen: true,
+            txReceipt: receipt,
+            TxStatusText: "Submit Transaction",
+            loading: false
+          })
+        } else {
+          setTimeout(getReceipt(thisObj, tx), 300)
+        }
+      })
+    }
+
 /*
     this.setState({
       txStatusText: "Transaction Pending"
@@ -141,19 +157,8 @@ class App extends Component {
 
     this.state.web3.eth.sendTransaction(txn, (e, tx) => {
       if (e) throw(e)
-      this.setState({loading: false})
 
-      let state = this.state
-      let onTx = this.onTx.bind(this)
-      let onTxDone = false
-      let blockCount = 0
-
-      this.setState({
-        txModalOpen: true,
-        txReceipt: tx,
-        TxStatusText: "Submit Transaction",
-        loading: false
-      })
+      getReceipt(this, tx)
 
     })
   }
