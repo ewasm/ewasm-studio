@@ -22,7 +22,7 @@ function getModalStyle() {
 const styles = theme => ({
   paper: {
     position: 'absolute',
-    width: theme.spacing.unit * 50,
+    width: theme.spacing.unit * 70,
     backgroundColor: theme.palette.background.paper,
     boxShadow: theme.shadows[5],
     padding: theme.spacing.unit * 4,
@@ -46,12 +46,13 @@ class SimpleModal extends React.Component {
   render() {
     const { classes } = this.props;
 
-    let createdAddress, txStatus = null
-    if (this.state.tx && this.state.tx.status) {
-      txStatus = "Status: " + this.state.tx.status == "1" ? "success" : "failure"
+    let createdAddress, transactionHash = null
+
+    if (this.props.txReceipt && this.props.txReceipt.contractAddress) {
+      createdAddress = "Contract Address: " + this.props.txReceipt.contractAddress;
     }
-    if (this.state.tx && this.state.tx.contractAddress) {
-      createdAddress = "Contract Address: " + this.state.tx.contractAddresss
+    if (this.props.txReceipt && this.props.txReceipt.transactionHash) {
+      transactionHash = this.props.txReceipt.transactionHash;
     }
 
     return (
@@ -63,10 +64,11 @@ class SimpleModal extends React.Component {
 			>
 				<div style={getModalStyle()} className={classes.paper}>
 					<Typography variant="subheading" id="simple-modal-description">
-            <p> Tx Receipt: { this.props.txReceipt } </p>
+            <p> Tx Receipt: { transactionHash } </p>
 					</Typography>
 					<SimpleModalWrapped />
-				</div>
+        <p>{createdAddress}</p>
+                                    </div>
 			</Modal>
     );
   }
