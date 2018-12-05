@@ -107,7 +107,7 @@ class App extends Component {
         wasm = buf2hex(module.emitBinary())
       } catch (e) {
         alert(e)
-        //TODO do something here
+        return
       }
 
       if (this.state.TxType == 'Contract') {
@@ -125,7 +125,7 @@ class App extends Component {
           wasm = buf2hex(module.emitBinary())
         } catch (e) {
           alert(e)
-          //TODO do something here
+          return
         }
       }
     } else {
