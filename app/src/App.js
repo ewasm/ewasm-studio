@@ -36,6 +36,7 @@ class App extends Component {
     this.onTx = this.onTx.bind(this)
     this.handleTxModalClose = this.handleTxModalClose.bind(this)
     this.onAddressChange = this.onAddressChange.bind(this)
+    this.onBlur = this.onBlur.bind(this)
     this.onValueUpdated = this.onValueUpdated.bind(this)
 
     //this.handleChange = this.handleChange.bind(this);
@@ -43,6 +44,13 @@ class App extends Component {
 
     //this.web3Provider = new Web3.providers.HttpProvider('http://localhost:8545')
     //this.web3 = new Web3(this.web3Provider)
+  }
+
+  onBlur(e) {
+    let leftPad = 40 - e.target.value.length;
+    if (leftPad > 0) {
+      e.target.value = "0".repeat(leftPad) + e.target.value;
+    }
   }
 
   onAddressChange(e) {
@@ -256,6 +264,7 @@ class App extends Component {
           <textarea
             placeholder="Enter an address to send normal transaction. Leave blank to send contract creation tx."
             onChange={this.onAddressChange}
+            onBlur={this.onBlur}
             style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "rgb(256, 256, 256)"}}
             // disabled={this.state.TxType === "Contract"}
             rows="1"
