@@ -24,7 +24,8 @@ class App extends Component {
       txStatusText: "Submit Transaction",
       loading: false,
       warningText: '',
-      txReceipt: null
+      txReceipt: null,
+      addrRows: 2
     }
 
     //alert(binaryen)
@@ -37,7 +38,6 @@ class App extends Component {
     this.handleTxModalClose = this.handleTxModalClose.bind(this)
     this.onAddressChange = this.onAddressChange.bind(this)
     this.onValueUpdated = this.onValueUpdated.bind(this)
-
     //this.handleChange = this.handleChange.bind(this);
     //this.handleSubmit = this.handleSubmit.bind(this);
 
@@ -49,10 +49,16 @@ class App extends Component {
     if (e.target.value !== "") {
       console.log('calling setTx...')
       this.setTx()
+      this.setState({
+        addrRows: 1
+      })
     }
     if (e.target.value === "") {
       console.log('calling setContract...')
       this.setContract()
+      this.setState({
+        addrRows: 2
+      })
     }
 
     this.setState({
@@ -258,7 +264,7 @@ class App extends Component {
             onChange={this.onAddressChange}
             style={{"background-color": this.state.TxType === "Contract" ? "rgb(220,220,220)" : "rgb(256, 256, 256)"}}
             // disabled={this.state.TxType === "Contract"}
-            rows="1"
+            rows={this.state.addrRows}
             cols="80">
           </textarea>
           <h2 style={{"text-align": "left"}}> Value (Wei) </h2>
