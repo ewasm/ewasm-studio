@@ -51,6 +51,10 @@ class App extends Component {
     if (leftPad > 0) {
       e.target.value = "0".repeat(leftPad) + e.target.value;
     }
+
+    this.setState({
+      to: e.target.value
+    })
   }
 
   onAddressChange(e) {
