@@ -94,6 +94,12 @@ class App extends Component {
       return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
     }
 
+    function isValidAddress(address) {
+      if (address.substr(0, 2) != '0x')
+        address = '0x' + address;
+      return /^0x[0-9a-fA-F]{40}$/.test(address);
+    }
+
     function getReceipt(thisObj, tx) {
       thisObj.state.web3.eth.getTransactionReceipt(tx, (e, receipt) => {
         if (e) throw(e)
@@ -114,7 +120,13 @@ class App extends Component {
     this.setState({
       txStatusText: "Transaction Pending"
     })
+
 */
+    // Validate address
+    if (this.state.TxType === 'Transaction' && !isValidAddress(this.state.to)) {
+      alert('Invalid address');
+      return;
+    }
 
     let wasm = ''
     let wast = ""
